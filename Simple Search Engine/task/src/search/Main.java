@@ -21,8 +21,11 @@ public class Main {
             switch (scan.nextInt()) {
                 case 1:
                     scan.nextLine();
+                    System.out.println("Select a matching strategy: ALL, ANY, NONE");
+                    var strategy = scan.nextLine();
                     System.out.println("Enter a name or email to search all suitable people.");
-                    engine.search(scan.nextLine());
+                    var target = scan.nextLine().toLowerCase();
+                    engine.search(target, strategy);
                     break;
                 case 2:
                     System.out.println("=== List of people ===");

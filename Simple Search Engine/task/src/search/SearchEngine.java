@@ -25,6 +25,7 @@ public class SearchEngine {
 
         for (int i = 0; i < data.size(); i++) {
             for (String s : data.get(i).split("\\s+")) {
+                s = s.toLowerCase();
                 if (!invertedIndex.containsKey(s)) {
                     invertedIndex.put(s, new LinkedHashSet<>());
                 }
@@ -37,13 +38,50 @@ public class SearchEngine {
         data.forEach(System.out::println);
     }
 
-    public void search(String target) {
-        var indexes = invertedIndex.get(target);
-        if (indexes == null) {
-            System.out.println("No matching people found.");
-        } else {
-            System.out.println(indexes.size() + "persons found:");
-            indexes.forEach(integer -> System.out.println(data.get(integer)));
+    public void search(String target, String strategy) {
+        Set<String> found;
+        switch (strategy) {
+            case "ANY":
+                found = searchAny(target);
+                break;
+            case "NONE":
+                found = searchNone(target);
+                break;
+            case "ALL":
+            default:
+                found = searchAll(target);
+                break;
         }
+        if (found.isEmpty()) {
+            System.out.println("Nothing found");
+        } else {
+            System.out.println(found.size() + " persons found");
+            found.forEach(System.out::println);
+        }
+    }
+
+    private Set<String> searchAll(String target) {
+        var indexes = invertedIndex.get(target);
+        var set = new LinkedHashSet<String>();
+        if (indexes != null) {
+            indexes.forEach(integer -> set.add(data.get(integer)));
+        }
+        return set;
+    }
+
+    private Set<String> searchAny(String target) {
+        var keywords = target.split("\\s+");
+        var set = new LinkedHashSet<String>();
+        for (String keyword : keywords) {
+            set.addAll(searchAll(keyword));
+        }
+        return set;
+    }
+
+    private Set<String> searchNone(String target) {
+        var set = new LinkedHashSet<>(data);
+        var exclude = searchAny(target);
+        set.removeAll(exclude);
+        return set;
     }
 }
