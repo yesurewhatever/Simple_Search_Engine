@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.Set;
 
 public class SearchEngine {
     private List<String> data = new ArrayList<>();
+    private Map<String, Set<Integer>> invertedIndex = new HashMap<>();
 
     public void initData(String fileName) {
         try (var reader = Files.newBufferedReader(Path.of(fileName))) {
@@ -18,6 +22,15 @@ public class SearchEngine {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        for (int i = 0; i < data.size(); i++) {
+            for (String s : data.get(i).split("\\s+")) {
+                if (!invertedIndex.containsKey(s)) {
+                    invertedIndex.put(s, new LinkedHashSet<>());
+                }
+                invertedIndex.get(s).add(i);
+            }
+        }
     }
 
     public void printAll() {
@@ -25,13 +38,12 @@ public class SearchEngine {
     }
 
     public void search(String target) {
-        var found = new ArrayList<String>();
-        var pattern = Pattern.compile(target, Pattern.CASE_INSENSITIVE);
-        data.forEach(x -> {
-            if (pattern.matcher(x).find()) {
-                found.add(x);
-            }
-        });
-        found.forEach(System.out::println);
+        var indexes = invertedIndex.get(target);
+        if (indexes == null) {
+            System.out.println("No matching people found.");
+        } else {
+            System.out.println(indexes.size() + "persons found:");
+            indexes.forEach(integer -> System.out.println(data.get(integer)));
+        }
     }
 }
